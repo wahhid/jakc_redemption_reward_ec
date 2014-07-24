@@ -1,0 +1,74 @@
+<openerp>
+    <data>
+        
+        <!-- RDM/REWARD -->
+		
+        <record model="ir.ui.view" id="view_rdm_reward_form">
+            <field name="name">rdm.reward.form</field>
+            <field name="model">rdm.reward</field>						
+            <field name="type">form</field>						
+            <field name="arch" type="xml">
+                <form string="Reward">  
+                    <group>                            
+                        <field name="name"/>                            
+                        <field name="point"/>                            
+                        <field name="stock"/>                            
+                        <field name="status"/>                            
+                    </group>
+                </form>
+            </field>
+        </record>
+		
+        <record model="ir.ui.view" id="view_rdm_reward_tree">
+            <field name="name">rdm.reward.tree</field>
+            <field name="model">rdm.reward</field>			
+            <field name="type">tree</field>						
+            <field name="arch" type="xml">
+                <tree string="Reward">
+                    <field name="name"/>
+                    <field name="point"/>                            
+                    <field name="stock"/>                            		
+                    <field name="status"/>                            
+                </tree>
+            </field>
+        </record>        
+        
+        <record model="ir.ui.view" id="view_rdm_reward_kanban">
+            <field name="name">rdm.reward.kanban</field>
+            <field name="model">rdm.reward</field>
+            <field name="type">kanban</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_resource_vignette">
+                                <div class="oe_resource_image">
+                                    <a type="open">                                        
+                                        <img t-att-src="kanban_image('rdm.reward', 'image_small', record.id.value)" class="oe_kanban_image"/>                                        
+                                    </a>
+                                </div>
+                                <div class="oe_resource_details">
+                                    <ul>
+                                        <!--Here you have to write the object's field name which you want to display in kanban view -->
+                                       <li><field name="name"/></li>
+                                       <li>Point : <field name="point"/></li>
+                                       <li>Stock : <field name="stock"/></li>
+                                       <li>Status : <field name="status"/></li>                                   
+                                     </ul>
+                                </div>
+                            </div>                       
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+        
+        <!-- RDM/ACTION -->
+        <!-- RULES -->
+	<record model="ir.actions.act_window" id="action_rdm_reward">
+            <field name="name">Reward</field>
+            <field name="res_model">rdm.reward</field>
+            <field name="view_mode">kanban,tree,form</field>
+        </record>		        
+    </data>
+</openerp>

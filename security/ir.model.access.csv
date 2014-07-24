@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_rdm_reward_manager,rdm.reward.manager,model_rdm_reward,base.group_rdm_manager,1,1,1,1
+access_rdm_reward_operator,rdm.reward.operator,model_rdm_reward,base.group_rdm_operator,1,0,0,0

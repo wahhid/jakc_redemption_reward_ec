@@ -1,0 +1,5 @@
+<openerp>
+    <data>        
+        <menuitem id="rdm_reward_menu" name="Reward" parent="base.rdm_reward_menu"  action="action_rdm_reward" sequence="1"/>        
+    </data>
+</openerp>
