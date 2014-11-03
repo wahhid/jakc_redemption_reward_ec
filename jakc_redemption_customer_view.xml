@@ -1,19 +1,18 @@
 <?xml version="1.0"?>
 <openerp>
     <data>
-        <record id="view_rdm_customer_form_inherit_promo_trans" model="ir.ui.view">
-            <field name="name">rdm.customer.form_inherit.promo.trans</field>
+        <record id="view_rdm_customer_form_inherit_rdm_reward_trans" model="ir.ui.view">
+            <field name="name">rdm.customer.form_inherit.rdm.reward.trans</field>
             <field name="model">rdm.customer</field>
             <field name="type">form</field>
             <field name="inherit_id" ref="jakc_redemption_customer.view_rdm_customer_form"/>					
             <field name="arch" type="xml">
                 <notebook position="inside">
-                    <page string="Point">
-                        <field name="point_reward_ids" widget="one2many_list" nolabel="1" context="{'promo_id': active_id}">
+                    <page string="Reward">
+                        <field name="reward_trans_ids" widget="one2many_list" nolabel="1">
                             <tree>                                                                
-                                <field name="trans_date"/>                                
-                                <field name="reward_id"/>                                                                        
-                                <field name="remark"/>                                                                        
+                                <field name="trans_date"/>                                                                                                                                
+                                <field name="remarks"/>                                                                        
                             </tree>                    
                         </field>
                     </page>

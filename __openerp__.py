@@ -3,7 +3,7 @@
     'version' : '1.0',
     'author' : 'JakC',
     'category' : 'Generic Modules/Redemption And Point Management',
-    'depends' : ['base_setup','base','jakc_redemption_customer'],
+    'depends' : ['base_setup','base','jakc_redemption_customer','jakc_redemption_customer_point'],
     'init_xml' : [],
     'data' : [			
         'security/ir.model.access.csv',
