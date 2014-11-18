@@ -1,6 +1,7 @@
 <openerp>
     <data>
-        
+               
+            	
         <!-- RDM/REWARD -->		
         <record model="ir.ui.view" id="view_rdm_reward_form">
             <field name="name">rdm.reward.form</field>
@@ -10,17 +11,27 @@
                 <form string="Reward" version="7.0">
                 	<sheet>
 						<group colspan="2">
-		                    <group>                            
-		                        <field name="name"/>                            
-		                        <field name="point"/>                            
-		                        <field name="stock"/>                            
-		                        <field name="status"/>	                                                   
-		                    </group>
-		                    <group>
-		                    	<field name="image1" widget="image"/>
-		                    </group>               																
-						</group>                		
+							<group>
+			                	<field name="name"/>                            
+			                    <field name="point"/>                            
+			                    <field name="stock"/>                            
+			                    <field name="state"/>	                                                   		                    															
+							</group>                    
+							<group>
+								<field name="image1"/>
+							</group>													
+						</group>    
 						
+						<notebook colspan="4">
+                    		<page string="Details">
+                        		<field name="reward_detail_ids" widget="one2many_list" nolabel="1">
+                            		<tree>                                                                                                
+                                		<field name="trans_date"/>
+                                		<field name="stock"/>                                            
+                            		</tree>                    
+                        		</field>
+                    		</page>
+						</notebook>           							
                 	</sheet> 
                 </form>
             </field>
@@ -35,7 +46,7 @@
                     <field name="name"/>
                     <field name="point"/>                            
                     <field name="stock"/>                            		
-                    <field name="status"/>                                         
+                    <field name="state"/>                                         
                 </tree>
             </field>
         </record>        
@@ -51,7 +62,7 @@
                             <div class="oe_resource_vignette">
                                 <div class="oe_resource_image">
                                     <a type="open">                                        
-                                        <img width="100" t-att-src="kanban_image('rdm.reward', 'image_small', record.id.value)" class="oe_kanban_image"/>                                        
+                                        <img width="100" class="oe_kanban_image"/>                                        
                                     </a>
                                 </div>
                                 <div class="oe_resource_details">
@@ -60,7 +71,7 @@
                                        <li><field name="name"/></li>
                                        <li>Point : <field name="point"/></li>
                                        <li>Stock : <field name="stock"/></li>
-                                       <li>Status : <field name="status"/></li>                                   
+                                       <li>Status : <field name="state"/></li>                                   
                                      </ul>
                                 </div>
                             </div>                       
@@ -79,7 +90,7 @@
                 <form string="Reward Transaction" version="7.0">
 					<header>
                         <button name="trans_close" string="Close" type="object" class="oe_highlight" states="open" confirm="Are you sure to close this transaction?"/>                                                
-                        <button name="print_receipt" String="Print" type="object" class="oe_highlight" attrs="{'invisible':[('printed','=',True)]}" states="done"/>
+                        <button name="print_receipt" String="Print" type="object" class="oe_highlight" states="done"/>
                         <button name="re_print" String="Re-Print" type="object" class="oe_highlight" states="done"/>
                         <button name="trans_reset" String="Re-Open" type="object" class="oe_highlight" states="done"/>                                                                        
 					</header>                	           	                	
@@ -121,17 +132,33 @@
             </field>
         </record>        
                         
-        <!-- RDM/ACTION -->
+        <record model="ir.ui.view" id="view_rdm_reward_trans_filter">
+            <field name="name">Transaction Search</field>
+            <field name="model">rdm.reward.trans</field>
+            <field name="arch" type="xml">
+                <search string="Search Transaction">                	
+                    <field name="trans_date"/>
+ 					<field name="customer_id"/>
+                    <filter icon="terp-camera_test" string="Open" name="status_open" domain="[('state','=','open')]" help="Open Status" />                                       
+                    <filter icon="terp-camera_test" string="Close" name="status_close" domain="[('state','=','done')]" help="Close Status" />  
+                    <group expand="0" string="Group By...">                        
+                        <filter string="Status" name="status" icon="terp-stock_effects-object-colorize" domain="[]" context="{'group_by':'state'}" />                        
+                    </group>
+                </search>
+            </field>
+        </record>   
+        	       
         <!-- REWARD -->
 		<record model="ir.actions.act_window" id="action_rdm_reward">
             <field name="name">Reward</field>
             <field name="res_model">rdm.reward</field>
             <field name="view_mode">kanban,tree,form</field>
         </record>
-        <!-- REWARD -->
+        <!-- REWARD TRANSACTION -->
 		<record model="ir.actions.act_window" id="action_rdm_reward_trans">
             <field name="name">Reward Transaction</field>
             <field name="res_model">rdm.reward.trans</field>
+			<field name="context">{'search_default_status_open':1}</field>            
             <field name="view_mode">tree,form</field>
         </record>		        
                 		        

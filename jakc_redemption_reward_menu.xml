@@ -1,6 +1,6 @@
 <openerp>
-    <data>        
-        <menuitem id="rdm_reward_menu" name="Reward" parent="base.rdm_reward_menu"  action="action_rdm_reward" sequence="1"/>
-        <menuitem id="rdm_reward_trans_menu" name="Transaction" parent="base.rdm_reward_menu"  action="action_rdm_reward_trans" sequence="2"/>        
+    <data>    	       
+        <menuitem id="rdm_reward_menu" name="Reward" parent="base.rdm_reward_menu"  action="action_rdm_reward" sequence="2"/>
+        <menuitem id="rdm_reward_trans_menu" name="Transaction" parent="base.rdm_reward_menu"  action="action_rdm_reward_trans" sequence="3"/>        
     </data>
 </openerp>

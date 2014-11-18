@@ -5,8 +5,6 @@ _logger = logging.getLogger(__name__)
 
 AVAILABLE_STATES = [
     ('draft','New'),
-    ('request','Request'),
-    ('ready','Ready'),    
     ('open','Open'),    
     ('done', 'Closed'),
 ]
@@ -14,19 +12,50 @@ AVAILABLE_STATES = [
 reportserver = '172.16.0.3'
 reportserverport = '8080'
 
-
 class rdm_reward(osv.osv):
     _name = "rdm.reward"
     _description = "Redemption Reward"
+    
+    def get_stocks(self, cr, uid, ids, field_name, args, context=None):
+        id = ids[0]
+        res = {}
+        sql_req= "SELECT sum(c.stock) as total FROM rdm_reward_detail c WHERE (c.reward_id=" + str(id) + ")"        
+        cr.execute(sql_req)
+        sql_res = cr.dictfetchone()
+        if sql_res:
+            total_coupons = sql_res['total']
+        else:
+            total_coupons = 0
+        #return {'value':{'':total_coupons}}
+        res[id] = total_coupons    
+        return res    
+    
     _columns = {
         'name': fields.char('Name', size=100, required=True),
         'point': fields.integer('Point #'),
-        'stock': fields.integer('Stock #'),
-        'image1': fields.binary('Image'),
-        'status': fields.boolean('Status'),
+        'stock': fields.function(get_stocks,type="integer",string="Stocks"),
+        'reward_detail_ids': fields.one2many('rdm.reward.detail','reward_id','Reward Details'),   
+        'image1': fields.binary('Image'),             
+        'state': fields.selection(AVAILABLE_STATES,'Status',size=16,readonly=True),        
+    }
+    
+    _defaults ={
+        'point': lambda *a: 1,
+        'state': lambda *a: 'draft',
     }
 
 rdm_reward()
+
+class rdm_reward_detail(osv.osv):
+    _name = "rdm.reward.detail"
+    _description = "Redemption Reward Detail"    
+    _columns = {
+        'reward_id': fields.many2one('rdm.reward','Reward',readonly=True),
+        'trans_date': fields.date('Transaction Date'),     
+        'stock': fields.integer('Stock'),       
+    }
+    
+rdm_reward_detail()
 
 class rdm_reward_trans(osv.osv):
     _name = "rdm.reward.trans"
@@ -77,19 +106,24 @@ class rdm_reward_trans(osv.osv):
         return True
     
     def onchange_reward_id(self, cr, uid, ids, reward_id, context=None):
+        res = {}
         if reward_id:
             reward = self.pool.get('rdm.reward').browse(cr, uid, reward_id, context=context)
-            return {'value':{'point':reward.point}}
-        return {}
+            res['point'] = reward.point
+            #return {'value':{'point':reward.point}}
+        return {'value':res}
         
     def _get_trans(self, cr, uid, trans_id , context=None):
         return self.browse(cr, uid, trans_id, context=context);
-
+    
+    def _get_reward(self, cr, uid, reward_id, context=None):
+        reward = self.pool.get('rdm.reward').browse(cr, uid, reward_id, context=context)
+        return reward
+    
     def _deduct_point_(self, cr, uid, ids, context=None):        
         _logger.info('Start Deduct Point')
         trans_id = ids[0]
-        trans = self._get_trans(cr, uid, trans_id, context)        
-        _logger.info('Total Point :' + str(trans.total_point))
+        trans = self._get_trans(cr, uid, trans_id, context)                
         point_data = {}
         point_data.update({'customer_id': trans.customer_id.id})
         point_data.update({'trans_id':trans.id})
@@ -98,13 +132,12 @@ class rdm_reward_trans(osv.osv):
         self.pool.get('rdm.customer.point').create(cr, uid, point_data, context=context)
         _logger.info('End Generate Coupon')
         
-        
-        
+                
     _columns = {
         'trans_date': fields.date('Transaction Date', required=True, readonly=True),        
         'customer_id': fields.many2one('rdm.customer','Customer', required=True),        
         'reward_id': fields.many2one('rdm.reward','Reward', required=True),
-        'point': fields.integer('Point # Deduct', required=True, readonly=True),      
+        'point': fields.integer('Point # Deduct', readonly=True),      
         'remarks': fields.text('Remarks'),
         'is_booking': fields.boolean('Is Booking ?'),
         'booking_expired': fields.date('Booking Expired'),
@@ -120,5 +153,35 @@ class rdm_reward_trans(osv.osv):
         'state': lambda *a: 'draft',
         'is_booking': lambda *a: False,        
     }
+    
+    def create(self, cr, uid, values, context=None):     
+        customer_id = values.get('customer_id')
+        customer_point = self.pool.get('rdm.customer').get_points(cr, uid, [customer_id], field_name=None, args=None, context=None)        
+        _logger.info('Customer Point : ' + str(customer_point.get(customer_id)))        
+        reward_id = values.get('reward_id')
+        reward = self._get_reward(cr, uid, reward_id, context)        
+        if customer_point.get(customer_id) >= reward.point:            
+            values.update({'point':reward.point})
+            values.update({'state':'open'})
+            trans_id = super(rdm_reward_trans,self).create(cr, uid, values, context=context)            
+            return trans_id
+        else:
+            raise osv.except_osv(('Warning'), ('Point not enough'))           
+    
+    def write(self, cr, uid, ids, values, context=None ):
+        trans_id = ids[0]                
+        trans = self._get_trans(cr, uid, trans_id, context)        
+        if trans['state'] == 'done':                 
+            if values.get('bypass') == True:
+                trans_data = {}                
+            else: 
+                raise osv.except_osv(('Warning'), ('Edit not allowed, Transaction already closed!'))              
+        else:
+            reward_id = values.get('reward_id')
+            if reward_id:
+                reward = self._get_reward(cr, uid, reward_id, context)        
+                values.update({'point':reward.point})            
+        result = super(rdm_reward_trans,self).write(cr, uid, ids, values, context=context)
+        return result
     
 rdm_reward_trans()

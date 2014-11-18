@@ -1,3 +1,10 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_rdm_reward_manager,rdm.reward.manager,model_rdm_reward,base.group_rdm_manager,1,1,1,1
+access_rdm_reward_officer,rdm.reward.officer,model_rdm_reward,base.group_rdm_officer,1,1,1,0
 access_rdm_reward_operator,rdm.reward.operator,model_rdm_reward,base.group_rdm_operator,1,0,0,0
+access_rdm_reward_detail_manager,rdm.reward.detail.manager,model_rdm_reward_detail,base.group_rdm_manager,1,1,1,1
+access_rdm_reward_detail_officer,rdm.reward.detail.officer,model_rdm_reward_detail,base.group_rdm_officer,1,1,1,0
+access_rdm_reward_detail_operator,rdm.reward.detail.operator,model_rdm_reward_detail,base.group_rdm_operator,1,0,0,0
+access_rdm_reward_trans_manager,rdm.reward.trans.manager,model_rdm_reward_trans,base.group_rdm_manager,1,1,1,1
+access_rdm_reward_trans_officer,rdm.reward.trans.officer,model_rdm_reward_trans,base.group_rdm_officer,1,1,1,0
+access_rdm_reward_trans_operator,rdm.reward.trans.operator,model_rdm_reward_trans,base.group_rdm_operator,1,1,1,0
