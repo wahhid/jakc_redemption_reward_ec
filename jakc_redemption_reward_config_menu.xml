@@ -1,1 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <menuitem id="rdm_reward_config" name="Reward Settings" parent="base.menu_config" sequence="16" action="action_reward_config"/>
+    </data>
+</openerp>
