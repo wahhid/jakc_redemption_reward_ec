@@ -38,7 +38,7 @@ class rdm_reward_config_settings(osv.osv_memory):
     def get_default_reward_limit(self, cr, uid, fields, context=None):
         ids = self.pool.get('rdm.reward.config').search(cr, uid, [('state','=', True),], context=context)
         if ids:
-            reward_limit = self.pool.get('rdm.reward.config').browse(cr, uid, uid, context=context).enable_referal
+            reward_limit = self.pool.get('rdm.reward.config').browse(cr, uid, uid, context=context).reward_limit
         else: 
             reward_data = {}
             result_id = self.pool.get('rdm.reward.config').create(cr, uid, reward_data, context=context)
@@ -56,7 +56,7 @@ class rdm_reward_config_settings(osv.osv_memory):
     def get_default_reward_limit_count(self, cr, uid, fields, context=None):
         ids = self.pool.get('rdm.reward.config').search(cr, uid, [('state','=', True),], context=context)
         if ids:
-            reward_limit_count = self.pool.get('rdm.reward.config').browse(cr, uid, uid, context=context).enable_referal
+            reward_limit_count = self.pool.get('rdm.reward.config').browse(cr, uid, uid, context=context).reward_limit_count
         else: 
             reward_data = {}
             result_id = self.pool.get('rdm.reward.config').create(cr, uid, reward_data, context=context)
