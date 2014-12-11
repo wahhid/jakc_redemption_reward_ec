@@ -98,7 +98,7 @@
 	                    <group colspan="2">
 							<group>
 		                    	<field name="trans_date"/>                           
-			                    <field name="customer_id"/>		                                                	
+			                    <field name="customer_id" domain="[('state','=','active')]"/>		                                                	
 			                    <field name="remarks"/>
 			                    <field name="is_booking"/>
 			                    <field name="booking_expired" attrs="{'invisible':[('is_booking','=',False)]}"/>		                          

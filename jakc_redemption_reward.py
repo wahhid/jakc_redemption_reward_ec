@@ -62,29 +62,44 @@ class rdm_reward_trans(osv.osv):
     _description = "Redemption Reward Transaction"
     
     def trans_close(self, cr, uid, ids, context=None):    
-        _logger.info("Close Transaction for ID : " + str(ids))    
-        self.write(cr,uid,ids,{'state':'done'},context=context)    
-        self._deduct_point_(cr, uid, ids, context)
+        _logger.info("Close Transaction for ID : " + str(ids))
+        #Get Transaction
+        trans_id = ids[0]
+        trans = self._get_trans(cr, uid, trans_id, context)
+        
+        #Close Transaction         
+        self.write(cr,uid,ids,{'state':'done'},context=context)
+        
+        #Deduct Point
+        customer_id = trans.customer_id.id
+        point_data = {}
+        point_data.update({'customer_id': customer_id})
+        point_data.update({'trans_id': trans_id})
+        point_data.update({'trans_type': 'reward'})
+        point_data.update({'point': -1 * trans.point})    
+        self.pool.get('rdm.customer.point').add_or_deduct_point_(cr, uid, point_data, context)
+        
         return True
     
     def _update_print_status(self, cr, uid, ids, context=None):
-        _logger.info("Update Print Status for ID : " + str(ids))
+        _logger.info("Start Update Print Status for ID : " + str(ids))
         values = {}
         values.update({'bypass':True})
         values.update({'method':'_update_print_status'})
         values.update({'printed':True})
         self.write(cr, uid, ids, values, context=context)
-                    
+        _logger.info("End Update Print Status for ID : " + str(ids))            
         
-    def print_receipt(self, cr, uid, ids, context=None):
+    def trans_print_receipt(self, cr, uid, ids, context=None):
         _logger.info("Print Receipt for ID : " + str(ids))        
-        id = ids[0]   
+        trans_id = ids[0]   
+        
         serverUrl = 'http://' + reportserver + ':' + reportserverport +'/jasperserver'
         j_username = 'rdm_operator'
         j_password = 'rdm123'
         ParentFolderUri = '/rdm'
         reportUnit = '/rdm/trans_receipt'
-        url = serverUrl + '/flow.html?_flowId=viewReportFlow&standAlone=true&_flowId=viewReportFlow&ParentFolderUri=' + ParentFolderUri + '&reportUnit=' + reportUnit + '&ID=' +  str(id) + '&decorate=no&j_username=' + j_username + '&j_password=' + j_password + '&output=pdf'
+        url = serverUrl + '/flow.html?_flowId=viewReportFlow&standAlone=true&_flowId=viewReportFlow&ParentFolderUri=' + ParentFolderUri + '&reportUnit=' + reportUnit + '&ID=' +  str(trans_id) + '&decorate=no&j_username=' + j_username + '&j_password=' + j_password + '&output=pdf'
         return {
             'type':'ir.actions.act_url',
             'url': url,
@@ -93,18 +108,22 @@ class rdm_reward_trans(osv.osv):
         }        
         
     
-    def re_print(self, cr, uid, ids, context=None):
+    def trans_re_print(self, cr, uid, ids, context=None):
         _logger.info("Re-Print Receipt for ID : " + str(ids))
+        trans_id = ids[0]
+        trans = self._get_trans(cr, uid, trans_id, context)
         
         return True
     
     def trans_reset(self, cr, uid, ids, context=None):
-        _logger.info("Reset for ID : " + str(ids))
-        trans_data = {}
-        trans_data.update({'state':'open'})      
-        super(rdm_reward_trans,self).write(cr, uid, [id], trans_data, context=context)        
-        return True
-    
+        _logger.info("Start Reset for ID : " + str(ids))
+        values = {}
+        values.update({'bypass':True})
+        values.update({'method':'trans_reset'})
+        values.update({'state':'open'})
+        self.write(cr, uid, ids, values, context=context)
+        _logger.info("End Reset for ID : " + str(ids))            
+
     def onchange_reward_id(self, cr, uid, ids, reward_id, context=None):
         res = {}
         if reward_id:
@@ -118,20 +137,7 @@ class rdm_reward_trans(osv.osv):
     
     def _get_reward(self, cr, uid, reward_id, context=None):
         reward = self.pool.get('rdm.reward').browse(cr, uid, reward_id, context=context)
-        return reward
-    
-    def _deduct_point_(self, cr, uid, ids, context=None):        
-        _logger.info('Start Deduct Point')
-        trans_id = ids[0]
-        trans = self._get_trans(cr, uid, trans_id, context)                
-        point_data = {}
-        point_data.update({'customer_id': trans.customer_id.id})
-        point_data.update({'trans_id':trans.id})
-        point_data.update({'trans_type':'reward'})
-        point_data.update({'point':-1 * trans.point})                
-        self.pool.get('rdm.customer.point').create(cr, uid, point_data, context=context)
-        _logger.info('End Generate Coupon')
-        
+        return reward        
                 
     _columns = {
         'trans_date': fields.date('Transaction Date', required=True, readonly=True),        
@@ -168,20 +174,27 @@ class rdm_reward_trans(osv.osv):
         else:
             raise osv.except_osv(('Warning'), ('Point not enough'))           
     
+    
     def write(self, cr, uid, ids, values, context=None ):
         trans_id = ids[0]                
         trans = self._get_trans(cr, uid, trans_id, context)        
         if trans['state'] == 'done':                 
             if values.get('bypass') == True:
-                trans_data = {}                
+                trans_data = {}
+                if values.get('method') == 'trans_reset':
+                    trans_data.update({'state': values.get('state')})
+                if values.get('method') == 'trans_print_receipt':
+                    trans_data.update({'printed': values.get('printed')})
+                
+                result = super(rdm_reward_trans,self).write(cr, uid, ids, trans_data, context=context)                       
             else: 
                 raise osv.except_osv(('Warning'), ('Edit not allowed, Transaction already closed!'))              
         else:
-            reward_id = values.get('reward_id')
-            if reward_id:
-                reward = self._get_reward(cr, uid, reward_id, context)        
-                values.update({'point':reward.point})            
-        result = super(rdm_reward_trans,self).write(cr, uid, ids, values, context=context)
+            #reward_id = values.get('reward_id')
+            #if reward_id:
+            #    reward = self._get_reward(cr, uid, reward_id, context)        
+            #    values.update({'point':reward.point})            
+            result = super(rdm_reward_trans,self).write(cr, uid, ids, values, context=context)
         return result
     
 rdm_reward_trans()
