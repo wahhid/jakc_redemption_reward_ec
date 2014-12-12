@@ -90,8 +90,7 @@
                 <form string="Reward Transaction" version="7.0">
 					<header>
                         <button name="trans_close" string="Close" type="object" class="oe_highlight" states="open" confirm="Are you sure to close this transaction?"/>                                                
-                        <button name="print_receipt" String="Print" type="object" class="oe_highlight" states="done"/>
-                        <button name="re_print" String="Re-Print" type="object" class="oe_highlight" states="done"/>
+                        <button name="trans_print_receipt" String="Print" type="object" class="oe_highlight" states="done"/>
                         <button name="trans_reset" String="Re-Open" type="object" class="oe_highlight" states="done"/>                                                                        
 					</header>                	           	                	
                 	<sheet>
