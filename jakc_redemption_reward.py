@@ -77,7 +77,7 @@ class rdm_reward_trans(osv.osv):
         point_data.update({'trans_id': trans_id})
         point_data.update({'trans_type': 'reward'})
         point_data.update({'point': -1 * trans.point})    
-        self.pool.get('rdm.customer.point').add_or_deduct_point_(cr, uid, point_data, context)
+        self.pool.get('rdm.customer.point').add_or_deduct_point(cr, uid, point_data, context)
         
         return True
     
