@@ -9,6 +9,18 @@ AVAILABLE_STATES = [
     ('done', 'Closed'),
 ]
 
+AVAILABLE_TYPE = [
+    ('goods','Goods'),
+    ('coupon','Coupon'),
+    ('voucher','Voucher'),
+]
+
+AVAILABLE_VOUCHER_STATES = [
+    ('open','Open'),
+    ('done','Closed'),
+    ('disable','Disable'),
+]
+
 reportserver = '172.16.0.3'
 reportserverport = '8080'
 
@@ -32,30 +44,51 @@ class rdm_reward(osv.osv):
     
     _columns = {
         'name': fields.char('Name', size=100, required=True),
-        'point': fields.integer('Point #'),
-        'stock': fields.function(get_stocks,type="integer",string="Stocks"),
-        'reward_detail_ids': fields.one2many('rdm.reward.detail','reward_id','Reward Details'),   
-        'image1': fields.binary('Image'),             
+        'type': fields.selection(AVAILABLE_TYPE,'Type', size=16, required=True),
+        'point': fields.integer('Point #'),                        
+        'image1': fields.binary('Image'),
+        'goods_ids': fields.one2many('rdm.reward.goods', 'reward_id', 'Goods'),
+        'coupon_ids': fields.one2many('rdm.reward.coupon', 'reward_id', 'Coupon'),
+        'voucher_ids': fields.one2many('rdm.reward.voucher', 'reward_id', 'Voucher'),             
         'state': fields.selection(AVAILABLE_STATES,'Status',size=16,readonly=True),        
     }
     
     _defaults ={
         'point': lambda *a: 1,
+        'type': lambda *a: 'goods',
         'state': lambda *a: 'draft',
     }
 
 rdm_reward()
 
-class rdm_reward_detail(osv.osv):
-    _name = "rdm.reward.detail"
-    _description = "Redemption Reward Detail"    
+class rdm_reward_goods(osv.osv):
+    _name = "rdm.reward.goods"
+    _description = "Redemption Reward Goods"    
     _columns = {
-        'reward_id': fields.many2one('rdm.reward','Reward',readonly=True),
+        'reward_id': fields.many2one('rdm.reward','Reward', readonly=True),
+        'trans_date': fields.date('Transaction Date'),     
+        'stock': fields.integer('Stock'),       
+    }    
+rdm_reward_goods()
+
+class rdm_reward_coupon(osv.osv):
+    _name = "rdm.reward.coupon"
+    _description = "Redemption Reward Coupon"    
+    _columns = {
+        'reward_id': fields.many2one('rdm.reward','Reward', readonly=True),
         'trans_date': fields.date('Transaction Date'),     
         'stock': fields.integer('Stock'),       
     }
-    
-rdm_reward_detail()
+
+class rdm_reward_voucher(osv.osv):
+    _name = "rdm.reward.voucher"
+    _description = "Redemption Reward Voucher"
+    _columns = {
+        'reward_id': fields.many2one('rdm.reward','Reward', readonly=True),
+        'trans_date': fields.date('Transaction Date'),
+        'voucher_no': fields.char('Voucher #', size=15),
+        'state': fields.selection(AVAILABLE_VOUCHER_STATES,'Status',size=16, readonly=True),
+    }
 
 class rdm_reward_trans(osv.osv):
     _name = "rdm.reward.trans"

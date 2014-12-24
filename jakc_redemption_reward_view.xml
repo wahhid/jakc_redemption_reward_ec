@@ -1,7 +1,5 @@
 <openerp>
-    <data>
-               
-            	
+    <data>                          
         <!-- RDM/REWARD -->		
         <record model="ir.ui.view" id="view_rdm_reward_form">
             <field name="name">rdm.reward.form</field>
@@ -12,26 +10,42 @@
                 	<sheet>
 						<group colspan="2">
 							<group>
-			                	<field name="name"/>                            
-			                    <field name="point"/>                            
-			                    <field name="stock"/>                            
+			                	<field name="name"/>
+			                	<field name="type"/>                            
+			                    <field name="point"/>                            			                                               
 			                    <field name="state"/>	                                                   		                    															
 							</group>                    
 							<group>
-								<field name="image1"/>
+								<field name="image1" widget="image"/>
 							</group>													
-						</group>    
-						
+						</group>    					
 						<notebook colspan="4">
-                    		<page string="Details">
-                        		<field name="reward_detail_ids" widget="one2many_list" nolabel="1">
+							<page string="Goods" attrs="{'invisible':[('type','!=','goods')]}">
+								<field name="goods_ids" widget="one2many_list" nolabel="1">
                             		<tree>                                                                                                
                                 		<field name="trans_date"/>
-                                		<field name="stock"/>                                            
+                                		<field name="stock"/>                                		                                      
                             		</tree>                    
                         		</field>
-                    		</page>
-						</notebook>           							
+							</page>
+							<page string="Coupon" attrs="{'invisible':[('type','!=','coupon')]}">
+                        		<field name="coupon_ids" widget="one2many_list" nolabel="1">
+                            		<tree>                                                                                                
+                                		<field name="trans_date"/>
+                                		<field name="stock"/>                                		                       		                                     
+                            		</tree>                    
+                        		</field>							
+							</page>
+							<page string="Voucher" attrs="{'invisible':[('type','!=','voucher')]}">
+                        		<field name="voucher_ids" widget="one2many_list" nolabel="1">
+                            		<tree>                                                                                                
+                                		<field name="trans_date"/>
+                                		<field name="voucher_no"/>
+                                		<field name="state"/>                                		                       		                                     
+                            		</tree>                    
+                        		</field>							
+							</page>
+						</notebook>	
                 	</sheet> 
                 </form>
             </field>
@@ -44,8 +58,7 @@
             <field name="arch" type="xml">
                 <tree string="Reward">
                     <field name="name"/>
-                    <field name="point"/>                            
-                    <field name="stock"/>                            		
+                    <field name="point"/>                                                                     	
                     <field name="state"/>                                         
                 </tree>
             </field>
@@ -61,16 +74,13 @@
                         <t t-name="kanban-box">
                             <div class="oe_resource_vignette">
                                 <div class="oe_resource_image">
-                                    <a type="open">                                        
-                                        <img width="100" class="oe_kanban_image"/>                                        
-                                    </a>
+                                    <a type="open"><img width="200" class="oe_kanban_image" t-att-src="kanban_image('rdm.reward', 'image1', record.id.value)"/></a>
                                 </div>
                                 <div class="oe_resource_details">
                                     <ul>
                                         <!--Here you have to write the object's field name which you want to display in kanban view -->
                                        <li><field name="name"/></li>
-                                       <li>Point : <field name="point"/></li>
-                                       <li>Stock : <field name="stock"/></li>
+                                       <li>Point : <field name="point"/></li>                                       
                                        <li>Status : <field name="state"/></li>                                   
                                      </ul>
                                 </div>
