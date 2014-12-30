@@ -12,7 +12,9 @@
 							<group>
 			                	<field name="name"/>
 			                	<field name="type"/>                            
-			                    <field name="point"/>                            			                                               
+			                    <field name="point"/>
+			                    <field name="stock"/>
+			                    <field name="usage"/>			                    			                                                			                                             
 			                    <field name="state"/>	                                                   		                    															
 							</group>                    
 							<group>
@@ -80,7 +82,7 @@
                                     <ul>
                                         <!--Here you have to write the object's field name which you want to display in kanban view -->
                                        <li><field name="name"/></li>
-                                       <li>Point : <field name="point"/></li>                                       
+                                       <li>Point : <field name="point"/></li>                                                                                                             
                                        <li>Status : <field name="state"/></li>                                   
                                      </ul>
                                 </div>
@@ -88,6 +90,54 @@
                         </t>
                     </templates>
                 </kanban>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_rdm_reward_goods_form">
+            <field name="name">rdm.reward.goods.form</field>
+            <field name="model">rdm.reward.goods</field>						
+            <field name="type">form</field>						
+            <field name="arch" type="xml">
+                <form string="Goods" version="7.0">
+                	<sheet>
+						<group colspan="2">							
+			            	<field name="trans_date"/>
+			                <field name="stock"/>                            
+						</group>    					
+                	</sheet> 
+                </form>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="view_rdm_reward_coupon_form">
+            <field name="name">rdm.reward.coupon.form</field>
+            <field name="model">rdm.reward.coupon</field>						
+            <field name="type">form</field>						
+            <field name="arch" type="xml">
+                <form string="Coupon" version="7.0">
+                	<sheet>
+						<group colspan="2">							
+			            	<field name="trans_date"/>
+			                <field name="stock"/>                            
+						</group>    					
+                	</sheet> 
+                </form>
+            </field>
+        </record>
+        
+		<record model="ir.ui.view" id="view_rdm_reward_voucher_form">
+            <field name="name">rdm.reward.voucher.form</field>
+            <field name="model">rdm.reward.voucher</field>						
+            <field name="type">form</field>						
+            <field name="arch" type="xml">
+                <form string="Voucher" version="7.0">
+                	<sheet>
+						<group colspan="2">							
+			            	<field name="trans_date"/>
+			                <field name="voucher_no"/>                            
+						</group>    					
+                	</sheet> 
+                </form>
             </field>
         </record>
 

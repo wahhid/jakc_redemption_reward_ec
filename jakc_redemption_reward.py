@@ -28,24 +28,47 @@ class rdm_reward(osv.osv):
     _name = "rdm.reward"
     _description = "Redemption Reward"
     
+    def get_trans(self, cr, uid, ids, context=None):
+        trans_id = ids[0]        
+        return self.browse(cr, uid, trans_id, context=context)
+        
     def get_stocks(self, cr, uid, ids, field_name, args, context=None):
-        id = ids[0]
+        _logger.info('Start Get Stocks')       
+        id = ids[0]     
+        trans = self.get_trans(cr, uid, ids, context)
+        total_stock = 0
         res = {}
-        sql_req= "SELECT sum(c.stock) as total FROM rdm_reward_detail c WHERE (c.reward_id=" + str(id) + ")"        
+        if trans.type == 'goods':
+            total_stock = self.pool.get('rdm.reward.goods').get_stock(cr, uid, id, context=context)
+        if trans.type == 'coupon':
+            total_stock = self.pool.get('rdm.reward.coupon').get_stock(cr, uid, id, context=context)
+        if trans.type == 'voucer':
+            total_stock = self.pool.get('rdm.reward.voucher').get_stock(cr, uid, id, context=context)            
+        res[id] = total_stock
+        _logger.info('End Get Stocks')    
+        return res    
+    
+    def get_usages(self, cr, uid, ids, field_name, args, context=None):
+        _logger.info('Start Get Usage')        
+        id = ids[0]
+        total_usage = 0
+        res = {}
+        sql_req= "SELECT sum(point) as total FROM rdm_reward_trans WHERE reward_id=" + str(id)            
         cr.execute(sql_req)
         sql_res = cr.dictfetchone()
         if sql_res:
-            total_coupons = sql_res['total']
-        else:
-            total_coupons = 0
-        #return {'value':{'':total_coupons}}
-        res[id] = total_coupons    
-        return res    
-    
+            total_usage = sql_res['total']
+        res[id] = total_usage            
+        _logger.info('End Get Usages')                
+        return res                 
+        
+            
     _columns = {
         'name': fields.char('Name', size=100, required=True),
         'type': fields.selection(AVAILABLE_TYPE,'Type', size=16, required=True),
-        'point': fields.integer('Point #'),                        
+        'point': fields.integer('Point #'),
+        'stock': fields.function(get_stocks, type="integer", string="Stock"),
+        'usage': fields.function(get_usages, type="integer", string="Usage"),                        
         'image1': fields.binary('Image'),
         'goods_ids': fields.one2many('rdm.reward.goods', 'reward_id', 'Goods'),
         'coupon_ids': fields.one2many('rdm.reward.coupon', 'reward_id', 'Coupon'),
@@ -63,32 +86,86 @@ rdm_reward()
 
 class rdm_reward_goods(osv.osv):
     _name = "rdm.reward.goods"
-    _description = "Redemption Reward Goods"    
+    _description = "Redemption Reward Goods"
+    
+    def get_stock(self, cr, uid, reward_id, context=None):
+        _logger.info('Start Get Goods Stocks')        
+        total_stock = 0        
+        sql_req= "SELECT sum(stock) as total FROM rdm_reward_goods WHERE reward_id=" + str(reward_id)            
+        cr.execute(sql_req)
+        sql_res = cr.dictfetchone()
+        if sql_res:
+            total_stock = sql_res['total']            
+        _logger.info('End Get Goods Stocks')        
+        return total_stock    
+                                
     _columns = {
         'reward_id': fields.many2one('rdm.reward','Reward', readonly=True),
         'trans_date': fields.date('Transaction Date'),     
         'stock': fields.integer('Stock'),       
     }    
+
+    _defaults = {
+        'trans_date': fields.date.context_today,
+    }
+    
 rdm_reward_goods()
 
 class rdm_reward_coupon(osv.osv):
     _name = "rdm.reward.coupon"
-    _description = "Redemption Reward Coupon"    
+    _description = "Redemption Reward Coupon"
+    
+    def get_stock(self, cr, uid, reward_id, context=None):
+        _logger.info('Start Get Coupon Stocks')        
+        total_stock = 0        
+        sql_req= "SELECT sum(stock) as total FROM rdm_reward_coupon WHERE reward_id=" + str(reward_id)            
+        cr.execute(sql_req)
+        sql_res = cr.dictfetchone()
+        if sql_res:
+            total_stock = sql_res['total']            
+        _logger.info('End Get Coupon Stocks')        
+        return total_stock    
+        
     _columns = {
         'reward_id': fields.many2one('rdm.reward','Reward', readonly=True),
         'trans_date': fields.date('Transaction Date'),     
         'stock': fields.integer('Stock'),       
     }
+    
+    _defaults = {
+        'trans_date': fields.date.context_today,
+    }
+    
+rdm_reward_coupon()
 
 class rdm_reward_voucher(osv.osv):
     _name = "rdm.reward.voucher"
     _description = "Redemption Reward Voucher"
+    
+    def get_stock(self, cr, uid, reward_id, context=None):        
+        _logger.info('Start Get Voucher Stocks')        
+        total_stock = 0        
+        sql_req= "SELECT count(*) as total FROM rdm_reward_voucher WHERE reward_id=" + str(reward_id) + " AND state='open'"            
+        cr.execute(sql_req)
+        sql_res = cr.dictfetchone()
+        if sql_res:
+            total_stock = sql_res['total']            
+        _logger.info('End Get Voucher Stocks')        
+        return total_stock    
+    
     _columns = {
         'reward_id': fields.many2one('rdm.reward','Reward', readonly=True),
         'trans_date': fields.date('Transaction Date'),
         'voucher_no': fields.char('Voucher #', size=15),
         'state': fields.selection(AVAILABLE_VOUCHER_STATES,'Status',size=16, readonly=True),
     }
+    
+    _defaults = {
+        'trans_date': fields.date.context_today,
+        'state': lambda *a : 'open',
+    }
+    
+rdm_reward_voucher()
 
 class rdm_reward_trans(osv.osv):
     _name = "rdm.reward.trans"
@@ -98,20 +175,12 @@ class rdm_reward_trans(osv.osv):
         _logger.info("Close Transaction for ID : " + str(ids))
         #Get Transaction
         trans_id = ids[0]
-        trans = self._get_trans(cr, uid, trans_id, context)
-        
+        trans = self._get_trans(cr, uid, trans_id, context)        
         #Close Transaction         
-        self.write(cr,uid,ids,{'state':'done'},context=context)
-        
+        self.write(cr,uid,ids,{'state':'done'},context=context)        
         #Deduct Point
-        customer_id = trans.customer_id.id
-        point_data = {}
-        point_data.update({'customer_id': customer_id})
-        point_data.update({'trans_id': trans_id})
-        point_data.update({'trans_type': 'reward'})
-        point_data.update({'point': -1 * trans.point})    
-        self.pool.get('rdm.customer.point').add_or_deduct_point(cr, uid, point_data, context)
-        
+        customer_id = trans.customer_id.id                
+        self.pool.get('rdm.customer.point').deduct_point(cr, uid, trans_id, customer_id, trans.point, context=context)
         return True
     
     def _update_print_status(self, cr, uid, ids, context=None):
@@ -139,8 +208,7 @@ class rdm_reward_trans(osv.osv):
             'nodestroy': True,
             'target': 'new' 
         }        
-        
-    
+            
     def trans_re_print(self, cr, uid, ids, context=None):
         _logger.info("Re-Print Receipt for ID : " + str(ids))
         trans_id = ids[0]
@@ -223,10 +291,6 @@ class rdm_reward_trans(osv.osv):
             else: 
                 raise osv.except_osv(('Warning'), ('Edit not allowed, Transaction already closed!'))              
         else:
-            #reward_id = values.get('reward_id')
-            #if reward_id:
-            #    reward = self._get_reward(cr, uid, reward_id, context)        
-            #    values.update({'point':reward.point})            
             result = super(rdm_reward_trans,self).write(cr, uid, ids, values, context=context)
         return result
     
