@@ -82,6 +82,7 @@ class rdm_reward(osv.osv):
         'state': lambda *a: 'draft',
     }
 
+        
 rdm_reward()
 
 class rdm_reward_goods(osv.osv):
@@ -263,14 +264,14 @@ class rdm_reward_trans(osv.osv):
     
     def create(self, cr, uid, values, context=None):     
         customer_id = values.get('customer_id')
-        customer_point = self.pool.get('rdm.customer').get_points(cr, uid, [customer_id], field_name=None, args=None, context=None)        
-        _logger.info('Customer Point : ' + str(customer_point.get(customer_id)))        
+        customer = self.pool.get('rdm.customer').get_trans(cr, uid, customer_id, context=context)            
+        _logger.info('Customer Point : ' + str(customer['point']))        
         reward_id = values.get('reward_id')
         reward = self._get_reward(cr, uid, reward_id, context)        
-        if customer_point.get(customer_id) >= reward.point:            
+        if customer['point'] >= reward.point:            
             values.update({'point':reward.point})
-            values.update({'state':'open'})
-            trans_id = super(rdm_reward_trans,self).create(cr, uid, values, context=context)            
+            values.update({'state':'open'})            
+            trans_id = super(rdm_reward_trans,self).create(cr, uid, values, context=context)        
             return trans_id
         else:
             raise osv.except_osv(('Warning'), ('Point not enough'))           
